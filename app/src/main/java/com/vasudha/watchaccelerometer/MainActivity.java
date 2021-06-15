@@ -19,10 +19,12 @@ import java.io.*;
 public class MainActivity extends WearableActivity implements SensorEventListener {
 
     private static final String TAG = "MainActivity";
+    String file = "flick";
 
     private TextView mTextView;
     private SensorManager sensorManager;
     Sensor accelerometer;
+    Sensor gyro;
     String str;
     //boolean record;
     Button start_stop;
@@ -37,11 +39,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        sensorManager.registerListener(MainActivity.this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        //gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        sensorManager.registerListener(MainActivity.this, accelerometer, 10000);
+        //sensorManager.registerListener(MainActivity.this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
         Log.d(TAG, "on create: registered accelerometer listener");
         mTextView = (TextView) findViewById(R.id.text);
         start_stop = (Button) findViewById(R.id.start_stop);
-        start_stop.setOnClickListener(new View.OnClickListener(){
+        start_stop.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -51,6 +55,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     //start recording
 
                     Log.d(TAG, "on CLICK start");
+                    try {
+                        myWriter = new FileWriter(Environment.getExternalStorageDirectory().toString() + "/" + file + ".txt", true);
+                        //Log.d("st", Environment.getExternalStorageDirectory().toString()+ "/output.txt");
+                        myWriter.write("start\n");
+                        myWriter.close();
+                    } catch (IOException e) {
+                        System.out.println("An error occurred.");
+                        e.printStackTrace();
+                    }
                     start_stop.setText("stop");
                 } else {
 
@@ -72,27 +85,27 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if(start_stop.getText().equals("stop")){
-            str = event.values[0] + " "+ event.values[1] + " "+ event.values[2] + "\n";
-            try {
-                myWriter = new FileWriter(Environment.getExternalStorageDirectory().toString()+ "/output.txt", true);
-                myWriter.write(str);
-                myWriter.close();
-                Log.d(TAG, str);
-            } catch (IOException e) {
-                System.out.println("An error occurred.");
-                e.printStackTrace();
+                if (start_stop.getText().equals("stop")) {
+                str = event.values[0] + "," + event.values[1] + "," + event.values[2] + "\n";
+                try {
+                    myWriter = new FileWriter(Environment.getExternalStorageDirectory().toString() + "/" + file + ".txt", true);
+                    //Log.d("st", Environment.getExternalStorageDirectory().toString()+ "/output.txt");
+                    myWriter.write(str);
+                    myWriter.close();
+                    Log.d(TAG, str);
+                } catch (IOException e) {
+                    System.out.println("An error occurred.");
+                    e.printStackTrace();
+                }
             }
+
+            //Log.d(TAG, "on sensor changed: printing: " + record);
+            //Log.d(TAG, event.values[0] + " "+ event.values[1] + " "+ event.values[2]);
+            //Log.d(TAG, "onSensorChanged: " +  event.values);
+            //return event.values[0] + " "+ event.values[1] + " "+ event.values[2];
         }
 
-        //Log.d(TAG, "on sensor changed: printing: " + record);
-        //Log.d(TAG, event.values[0] + " "+ event.values[1] + " "+ event.values[2]);
-        //Log.d(TAG, "onSensorChanged: " +  event.values);
-        //return event.values[0] + " "+ event.values[1] + " "+ event.values[2];
-    }
-
-
-    private ActivityResultLauncher<String> requestPermissionLauncher =
+    /*private ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new RequestPermission(), isGranted -> {
                 if (isGranted) {
                     // Permission is granted. Continue the action or workflow in your
@@ -104,5 +117,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     // settings in an effort to convince the user to change their
                     // decision.
                 }
-            });
-}
+            });*/
+    }
+
